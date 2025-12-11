@@ -284,7 +284,7 @@
 
       <div class="text-center mt-12 mb-6">
         <p class="text-xs font-bold text-gray-400 tracking-widest uppercase">
-          DESIGNED BY NISHITANI STYLE
+          DESIGNED BY LIKEIN CLAIRE
         </p>
       </div>
     </div>
@@ -302,7 +302,7 @@
 
       app_title: '立客印水晶貼計算公式',
       tagline: '專業水晶貼紙快速報價 · 精準又簡單',
-      delivery_note: '交貨方式：一大張內多小張',
+      delivery_note: '報價公式已含切割費用<br>交貨方式：一大張內多小張',
 
       length_label: '貼紙長（mm）',
       width_label: '貼紙寬（mm）',
@@ -327,7 +327,7 @@
       
       const deliveryNote = document.getElementById('delivery-note');
       if (deliveryNote) {
-        deliveryNote.textContent =
+        deliveryNote.innerHTML =
           config.delivery_note || defaultConfig.delivery_note;
       }
 
