@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-TW" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>立客印水晶貼計算器</title>
+
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Playfair+Display:ital,wght@1,900&display=swap" rel="stylesheet">
+
+  <style>
+    /* 全域設定 */
+    body {
+      box-sizing: border-box;
+      min-height: 100vh;
+      background: #ffffff;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: #1a1a1a;
+      overflow-x: hidden; /* 防止大字撐開卷軸 */
+    }
+
+    /* 🎨 背景裝飾：模擬參考圖的巨大淡灰字體 */
+    .bg-art-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      font-family: 'Playfair Display', serif; /* 藝術襯線體 */
+      font-weight: 900;
+      font-style: italic;
+      color: #f3f4f6; /* 極淺灰 */
+      font-size: 18vw;
+      line-height: 0.8;
+      white-space: nowrap;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    
+    .bg-art-text span {
+      display: block;
+      text-align: center;
+    }
+
+    /* 🎨 線條藝術卡片 (Line Art Card) */
+    .line-card {
+      background: #ffffff;
+      border: 3px solid #1a1a1a; /* 粗黑線條 */
+      border-radius: 0px; /* 直角或微圓角，這裡用0增加俐落感 */
+      position: relative;
+      z-index: 10;
+      /* 硬陰影 (Hard Shadow) 模仿插畫風格 */
+      box-shadow: 12px 12px 0px #facc15; /* 黃色陰影 */
+      transition: transform 0.2s ease;
+    }
+
+    /* 輸入框風格 */
+    .line-input {
+      width: 100%;
+      background: #ffffff;
+      border: 2px solid #1a1a1a;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .line-input:focus {
+      outline: none;
+      background: #fffbeb; /* 淡淡的黃 */
+      box-shadow: 4px 4px 0px #1a1a1a; /* 聚焦時出現黑影 */
+      transform: translate(-2px, -2px);
+    }
+
+    /* 下拉選單 */
+    select.line-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.2em;
+    }
+
+    /* 標籤樣式 */
+    .line-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+
+    /* 藝術標題樣式 */
+    .art-title {
+      font-family: 'Playfair Display', serif; /* 與背景呼應 */
+      font-weight: 900;
+      font-style: italic;
+      color: #1a1a1a;
+      text-shadow: 2px 2px 0px #facc15; /* 標題黃色錯位 */
+    }
+
+    /* 分隔線 */
+    .line-divider {
+      height: 2px;
+      background: #1a1a1a;
+      margin: 2rem 0;
+      border-radius: 99px;
+      opacity: 0.1;
+    }
+
+    /* 結果區塊 */
+    .result-item {
+      border-bottom: 2px dashed #e5e7eb;
+      padding: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 最終報價區塊 */
+    .final-price-box {
+      background: #1a1a1a;
+      color: #ffffff;
+      padding: 24px;
+      margin-top: 24px;
+      border: 3px solid #1a1a1a;
+      position: relative;
+    }
+
+    /* 裝飾性的小幾何圖形 (模仿參考圖的漂浮物) */
+    .deco-shape {
+      position: absolute;
+      border: 2px solid #1a1a1a;
+      background: #fff;
+      z-index: 5;
+    }
+    .shape-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      top: 10%; right: 10%;
+      background: #facc15;
+    }
+    .shape-tri {
+      width: 0; height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid #1a1a1a;
+      top: 20%; left: 5%;
+      transform: rotate(-15deg);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating { animation: float 6s ease-in-out infinite; }
+  </style>
+
+  <style>
+    @view-transition { navigation: auto; }
+  </style>
+</head>
+<body class="h-full">
+
+  <div class="bg-art-text">
+    <span>CRYSTAL</span>
+    <span style="margin-left: 1.5em; color: rgba(0,0,0,0.03); -webkit-text-stroke: 2px #e5e7eb;">LABEL</span>
+    <span>CALCULATOR</span>
+  </div>
+
+  <div class="deco-shape shape-circle floating" style="top: 15%; right: 8%;"></div>
+  <div class="deco-shape shape-tri floating" style="top: 25%; left: 8%; animation-delay: 1s;"></div>
+
+  <div id="app" class="w-full h-full overflow-auto relative z-10">
+    <div class="min-h-full w-full py-12 px-4 flex flex-col items-center">
+
+      <div class="max-w-4xl w-full text-center mb-10">
+        <h1 id="app-title" class="art-title text-5xl md:text-7xl mb-4 tracking-tight">
+          立客印水晶貼
+        </h1>
+        <p id="tagline" class="text-lg md:text-xl font-bold bg-yellow-300 inline-block px-2 transform -rotate-1 border-2 border-black">
+          專業水晶貼紙快速報價 · 精準又簡單
+        </p>
+        <p id="delivery-note" class="mt-4 text-sm font-medium text-gray-500 tracking-wider uppercase">
+          /// 交貨方式：一大張內多小張 ///
+        </p>
+      </div>
+
+      <div class="max-w-4xl w-full">
+        <div class="line-card p-6 md:p-10">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div>
+              <label class="line-label" id="length-label">貼紙長 (mm)</label>
+              <input type="number" id="input-a" value="10" min="1" class="line-input">
+            </div>
+
+            <div>
+              <label class="line-label" id="width-label">貼紙寬 (mm)</label>
+              <input type="number" id="input-b" value="10" min="1" class="line-input">
+            </div>
+
+            <div>
+              <label class="line-label" id="quantity-label">貼紙數量 (pcs)</label>
+              <input type="number" id="input-c" value="100" min="1" class="line-input">
+            </div>
+
+            <div>
+              <label class="line-label" id="material-label">材質選擇</label>
+              <select id="input-d" class="line-input cursor-pointer">
+                <option value="ab">AB 膜</option>
+                <option value="gold">燙金直噴膜</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="line-label flex items-center gap-2" id="multiplier-label">
+                乘數 (利潤倍數)
+                <span class="text-xs bg-black text-white px-2 py-0.5 rounded-full">Admin</span>
+              </label>
+              <input type="number" id="input-h" value="2.5" min="0.1" step="0.1" class="line-input">
+            </div>
+          </div>
+
+          <div class="line-divider"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="space-y-2 bg-gray-50 p-6 border-2 border-gray-200">
+              <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="w-3 h-3 bg-yellow-400 border border-black block"></span>
+                計算明細
+              </h3>
+              
+              <div class="result-item">
+                <span class="text-gray-600 font-medium" id="total-area-label">總才數 (才)</span>
+                <span id="output-f" class="font-bold text-xl">0</span>
+              </div>
+              
+              <div class="result-item">
+                <span class="text-gray-600 font-medium" id="cost-label">成本</span>
+                <span id="output-e" class="font-bold text-xl">$0</span>
+              </div>
+              
+              <div class="result-item">
+                <span class="text-gray-600 font-medium" id="unit-cost-label">成本單價</span>
+                <span id="output-g" class="font-bold text-xl">$0</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col">
+              <div class="final-price-box flex-grow flex flex-col justify-center items-center text-center">
+                <div class="absolute top-2 left-2 w-2 h-2 bg-white rounded-full"></div>
+                <div class="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+                <div class="absolute bottom-2 left-2 w-2 h-2 bg-white rounded-full"></div>
+                <div class="absolute bottom-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+
+                <div class="mb-6 w-full">
+                  <span class="block text-yellow-400 text-sm font-bold tracking-widest uppercase mb-1" id="unit-price-label">單價 Unit Price</span>
+                  <span id="output-i" class="text-4xl font-black tracking-tighter">$0</span>
+                </div>
+                
+                <div class="w-full pt-6 border-t border-gray-700">
+                  <span class="block text-gray-400 text-xs font-bold tracking-widest uppercase mb-1" id="total-price-label">總金額 Total</span>
+                  <span id="output-j" class="text-5xl md:text-6xl font-black text-yellow-400 tracking-tighter" style="text-shadow: 2px 2px 0px #000;">$0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="text-center mt-12 mb-6">
+        <p class="text-xs font-bold text-gray-400 tracking-widest uppercase">
+          DESIGNED BY NISHITANI STYLE
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultConfig = {
+      background_color: '#f2f4fa',
+      surface_color: '#ffffff',
+      text_color: '#0f172a',
+      primary_action_color: '#2563eb',
+      secondary_action_color: '#94a3b8',
+      font_family: 'system-ui',
+      font_size: 16,
+
+      app_title: '立客印水晶貼計算公式',
+      tagline: '專業水晶貼紙快速報價 · 精準又簡單',
+      delivery_note: '交貨方式：一大張內多小張',
+
+      length_label: '貼紙長（mm）',
+      width_label: '貼紙寬（mm）',
+      quantity_label: '貼紙數量（pcs）',
+      material_label: '材質選擇',
+      multiplier_label: '乘數（利潤倍數）',
+
+      total_area_label: '總才數（才）',
+      cost_label: '成本',
+      unit_cost_label: '成本單價',
+      unit_price_label: '售價單價',
+      total_price_label: '售價總金額'
+    };
+
+    async function onConfigChange(config) {
+      // 為了適應新風格，這裡僅保留文字內容的更新，樣式由 CSS 強制覆蓋
+      
+      document.getElementById('app-title').textContent =
+        config.app_title || defaultConfig.app_title;
+      document.getElementById('tagline').textContent =
+        config.tagline || defaultConfig.tagline;
+      
+      const deliveryNote = document.getElementById('delivery-note');
+      if (deliveryNote) {
+        deliveryNote.textContent =
+          config.delivery_note || defaultConfig.delivery_note;
+      }
+
+      document.getElementById('length-label').textContent =
+        config.length_label || defaultConfig.length_label;
+      document.getElementById('width-label').textContent =
+        config.width_label || defaultConfig.width_label;
+      document.getElementById('quantity-label').textContent =
+        config.quantity_label || defaultConfig.quantity_label;
+      document.getElementById('material-label').textContent =
+        config.material_label || defaultConfig.material_label;
+      // 這裡特別處理乘數標籤，保留 Admin 標記
+      const multLabel = document.getElementById('multiplier-label');
+      if(multLabel) {
+         // 簡單替換文字節點，保留 span
+         multLabel.childNodes[0].nodeValue = (config.multiplier_label || defaultConfig.multiplier_label) + " ";
+      }
+
+      document.getElementById('total-area-label').textContent =
+        config.total_area_label || defaultConfig.total_area_label;
+      document.getElementById('cost-label').textContent =
+        config.cost_label || defaultConfig.cost_label;
+      document.getElementById('unit-cost-label').textContent =
+        config.unit_cost_label || defaultConfig.unit_cost_label;
+      document.getElementById('unit-price-label').textContent =
+        config.unit_price_label || defaultConfig.unit_price_label;
+      document.getElementById('total-price-label').textContent =
+        config.total_price_label || defaultConfig.total_price_label;
+    }
+
+    // 計算公式區 (完全未變動)
+    function calculate() {
+      const A = parseFloat(document.getElementById('input-a').value) || 10;
+      const B = parseFloat(document.getElementById('input-b').value) || 10;
+      const C = parseFloat(document.getElementById('input-c').value) || 100;
+      const D = document.getElementById('input-d').value;
+      const H = parseFloat(document.getElementById('input-h').value) || 2.5;
+
+      const baseCalc1 = ((A + 10) * (B + 10) * C / 90000);
+      const baseCalc2 = ((A + 1) * (B + 1) * C / 90000);
+
+      const part1 = Math.ceil(baseCalc1);
+      const part2 = Math.ceil(0.19 * baseCalc2);
+      const F = part1 + part2;
+
+      let E;
+      if (D === 'ab') {
+        E = (F * 100 < 450) ? 450 : F * 100;
+      } else {
+        E = (F * 200 < 650) ? 650 : F * 200;
+      }
+
+      const G = E / C;
+      const I = Math.round(G * H * 10) / 10;
+      const J = Math.round(I * C * 10) / 10;
+
+      document.getElementById('output-f').textContent = `${F}`;
+      document.getElementById('output-e').textContent = `$${E.toFixed(0)}`;
+      document.getElementById('output-g').textContent = `$${G.toFixed(2)}`;
+      document.getElementById('output-i').textContent = `$${I.toFixed(1)}`;
+      document.getElementById('output-j').textContent = `$${J.toFixed(1)}`;
+    }
+
+    document.getElementById('input-a').addEventListener('input', calculate);
+    document.getElementById('input-b').addEventListener('input', calculate);
+    document.getElementById('input-c').addEventListener('input', calculate);
+    document.getElementById('input-d').addEventListener('change', calculate);
+    document.getElementById('input-h').addEventListener('input', calculate);
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [], // 鎖定顏色風格以維持藝術設計
+          borderables: [],
+          fontEditable: {},
+          fontSizeable: {}
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['app_title', config.app_title || defaultConfig.app_title],
+          ['tagline', config.tagline || defaultConfig.tagline],
+          ['delivery_note', config.delivery_note || defaultConfig.delivery_note],
+          ['length_label', config.length_label || defaultConfig.length_label],
+          ['width_label', config.width_label || defaultConfig.width_label],
+          ['quantity_label', config.quantity_label || defaultConfig.quantity_label],
+          ['material_label', config.material_label || defaultConfig.material_label],
+          ['multiplier_label', config.multiplier_label || defaultConfig.multiplier_label],
+          ['total_area_label', config.total_area_label || defaultConfig.total_area_label],
+          ['cost_label', config.cost_label || defaultConfig.cost_label],
+          ['unit_cost_label', config.unit_cost_label || defaultConfig.unit_cost_label],
+          ['unit_price_label', config.unit_price_label || defaultConfig.unit_price_label],
+          ['total_price_label', config.total_price_label || defaultConfig.total_price_label]
+        ])
+      });
+    }
+
+    onConfigChange(window.elementSdk?.config || defaultConfig);
+    calculate();
+  </script>
+</body>
+</html>
